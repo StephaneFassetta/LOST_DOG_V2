@@ -1,0 +1,51 @@
+{% extends '../index.twig' %}
+
+{% block navbar %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <div id="playerProfil" style="display: none">
+        <input type="hidden" id="pseudo" value="{{ pseudo }}">
+        <input type="hidden" id="admin" value="{{ admin }}">
+    </div>
+
+    <div id="gameRoomProfil" style="display: none">
+        <input type="hidden" id="nameRoom" value="{{ nameRoom }}">
+        <input type="hidden" id="hasBeenCreate" value="{{ hasBeenCreate }}">
+        <input type="hidden" id="maxPlayerLimit" value="{{ maxPlayerLimit }}">
+        <input type="hidden" id="cardsInGame" data-value="{{ cardsInGame }}">
+    </div>
+
+    {% if admin == 0 %}
+        <div id="overlay-informations" style="display: none">
+        </div>
+    {% endif %}
+
+    <div class="room-container">
+        <div class="lobby-div">
+            {% block lobby %}
+                {% include './partials/lobby.twig' %}
+            {% endblock %}
+        </div>
+
+        <div class="in-game-div">
+            {% block inGame %}
+                {% include './partials/in-game.twig' %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="module" src="/js/game_infos.js"></script>
+    <script type="module" src="/js/start_game.js"></script>
+    <script type="module" src="/js/custom.js"></script>
+
+    {% if hasBeenCreate  == '1' %}
+        <script type="module" src="/js/create_game_room.js"></script>
+    {% else %}
+        <script type="module" src="/js/join_game.js"></script>
+    {% endif %}
+{% endblock %}

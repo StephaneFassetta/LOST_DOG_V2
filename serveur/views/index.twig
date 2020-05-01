@@ -1,0 +1,37 @@
+{% extends 'layout.twig' %}
+
+{% block navbar %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <div id="home-container">
+        <a href="/">
+            <div class="game-logo">
+                <img id="logo" src="../images/logo-dog2.gif"/>
+            </div>
+        </a>
+
+        <div class="group-button-game">
+            <a role="button" class="btn btn-lg main-button hvr-shadow" id="btnCreateRoom">Crée une partie</a>
+            <a role="button" class="btn btn-lg main-button hvr-shadow" id="btnJoinRoom">Rejoindre une partie</a>
+            <a role="button" class="btn btn-lg main-button hvr-shadow" id="btnShowInfo">Comment jouer ?</a>
+        </div>
+
+        {% block joinRoom %}
+            {% include './main-menu/join-room.twig' %}
+        {% endblock %}
+
+        {% block createRoom %}
+            {% include './main-menu/create-room.twig' %}
+        {% endblock %}
+
+        {% block howToLearn %}
+            {% include './main-menu/how-to-learn.twig' %}
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
