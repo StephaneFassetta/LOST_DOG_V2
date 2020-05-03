@@ -1,32 +1,64 @@
 <template>
     <div class="create-room-div">
-        <h2 class="head-title-form">CREE UNE PARTIE</h2>
-
+        <Header></Header>
         <form @submit.prevent="submitFormCreateRoom" id="formCreateRoom">
             <div class="create-room-input">
-                <label class="main-menu-label">Nom de la partie
-                    <span>
-                        <input v-model="roomName" type="text" class="form-control" aria-label="nameRoom" id="nameRoom" name="nameRoom" aria-describedby="basic-addon1">
-                        <p v-if="roomNameError" class="game-name-error error">Veuillez rentrer un nom de partie</p>
-                    </span>
-                </label>
+                <v-text-field v-model="roomName" id="nameRoom" name="nameRoom" label="Nom de la partie" outlined></v-text-field>
+                <v-alert v-if="roomNameError" border="top" color="red lighten-2" dark>Veuillez rentrer un nom de partie</v-alert>
 
-                <label class="main-menu-label">Pseudo
-                    <span>
-                        <input v-model="pseudo" type="text" class="form-control" aria-label="pseudoToCreate" name="pseudo" id="pseudoForCreate" aria-describedby="basic-addon1">
-                        <p v-if="pseudoError" class="player-name-error error">Veuillez rentrer un pseudo</p>
-                    </span>
-                </label>
+                <v-text-field v-model="pseudo" name="pseudo" id="pseudoForCreate" label="Pseudo" outlined></v-text-field>
+                <v-alert v-if="pseudoError" border="top" color="red lighten-2" dark>Veuillez rentrer un pseudo</v-alert>
             </div>
 
-            <p v-if="cardError" class=" error">Veuillez choisir au moins une carte</p>
+            <div class="text-center">
+                <v-sheet color="#801414b5">Partie a {{ playerInGame }} joueur(s)</v-sheet>
+            </div>
+
             <div class="row card-list">
-                <Card v-for="(card, index) in cards" :card="card" :key="index" @addCard="addCardDeck" @removeCard="removeCardDeck"></Card>
+                <Card v-for="(card, index) in cards" :card="card" :key="index" :cardChoose="cardChoosing" @addCard="addCardDeck" @removeCard="removeCardDeck"></Card>
             </div>
+            <v-alert v-if="cardError" border="top" color="red lighten-2" dark>Veuillez choisir au moins une carte</v-alert>
 
             <div class="group-button-create">
-                <router-link to="/" role="button" class="btn btn-lg back-button hvr-icon-back hvr-shutter-out-horizontal" id="backCreateRoom"><i class="fa fa-chevron-circle-left hvr-icon"></i>  Retour</router-link>
-                <button type="submit" role="button" class="btn btn-lg submit-button hvr-icon-forward" id="submitCreateRoom">Crée <i class="fa fa-chevron-circle-right hvr-icon"></i></button>
+                <v-btn to="/" role="button" class="btn btn-lg back-button" id="backCreateRoom">
+                    Retour
+                </v-btn>
+                <v-btn type="submit" :loading="errorExist === false" :disabled="errorExist === false" class="ma-2 submit-button" id="submitCreateRoom">
+                    Créer
+                </v-btn>
+                <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
+                    <template v-slot:activator="{ on }">
+                        <v-btn color="#801414b5" dark v-on="on">Compositions recommandées</v-btn>
+                    </template>
+                    <v-card>
+                        <v-toolbar dark color="primary">
+                            <v-btn icon dark @click="dialog = false">
+                                <v-icon>mdi-close</v-icon>
+                            </v-btn>
+                            <v-toolbar-title>Compostions</v-toolbar-title>
+                            <v-spacer></v-spacer>
+                            <v-toolbar-items>
+                                <v-btn dark text @click="setGame">Choisir</v-btn>
+                            </v-toolbar-items>
+                        </v-toolbar>
+                        <v-list three-line subheader>
+                            <v-subheader>General</v-subheader>
+                            <v-radio-group v-model="gamePersonnalizedChoose">
+                                <v-list-item v-for="(game, key) in listGamePersonnalized" :key="key">
+                                    <v-list-item-action>
+                                        <v-radio :key="key" :value="key"></v-radio>
+                                    </v-list-item-action>
+                                    <v-list-item-content>
+                                        <v-list-item-title>{{ key }}</v-list-item-title>
+                                        <ul>
+                                            <li v-for="(role, index) in game" :key="index">{{ cards[index - 1].name }} - {{ role }}</li>
+                                        </ul>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-radio-group>
+                        </v-list>
+                    </v-card>
+                </v-dialog>
             </div>
         </form>
     </div>
@@ -36,6 +68,7 @@
     import Card from "./_partials/Card";
     import cards from "../../../public/js/cards";
     import * as _ from 'lodash';
+    import Header from "./Header";
 
     export default {
         data() {
@@ -43,10 +76,18 @@
                 roomName: null,
                 pseudo: null,
                 cards: cards,
-                chooseCard: {},
+                cardChoosing: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0},
                 roomNameError : false,
                 pseudoError : false,
-                cardError : false
+                cardError : false,
+                errorExist: null,
+                playerInGame: 0,
+                listGamePersonnalized: {
+                    1 : {1: 4, 2: 5, 3: 1, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0},
+                    2 : {1: 3, 2: 7, 3: 8, 4: 8, 5: 0, 6: 0, 7: 0, 8: 0}
+                },
+                gamePersonnalizedChoose: null,
+                dialog: false
             }
         },
         methods: {
@@ -63,111 +104,53 @@
                     this.pseudoError = true;
                 }
 
-                if (_.isEmpty(this.chooseCard)) {
+                if (_.isEmpty(this.cardChoosing)) {
                     this.cardError = true;
                 }
 
                 if (!this.roomNameError && !this.pseudoError && !this.cardError) {
-                    this.createGameRoom();
+                    this.errorExist = false;
+                    setTimeout(() => (this.createGameRoom()), 2500);
+                } else {
+                    this.errorExist = true;
                 }
             },
             addCardDeck(cardInformation) {
-                this.chooseCard[cardInformation.card.id] = cardInformation.counter;
+                this.cardChoosing[cardInformation.card.id] = cardInformation.counter;
+                this.playerInGame++
             },
             removeCardDeck(cardInformation) {
-                this.chooseCard[cardInformation.card.id] = cardInformation.counter;
+                this.cardChoosing[cardInformation.card.id] = cardInformation.counter;
+                this.playerInGame--
             },
             createGameRoom() {
-                this.$socket.emit('createGameRoom', {'cards': cards, 'admin': {'pseudo': this.pseudo, 'socketId': this.$socket.id}, 'gameRoom': {'roomName': this.roomName, 'playerLimit':  this.maxPlayerLimit(this.chooseCard), 'chooseCard': this.chooseCard}});
+                this.$socket.emit('createGameRoom', {'cards': cards, 'admin': {'pseudo': this.pseudo, 'socketId': this.$socket.id}, 'gameRoom': {'roomName': this.roomName, 'playerLimit':  this.maxPlayerLimit(this.cardChoosing), 'chooseCard': this.cardChoosing}});
                 this.$router.push(`/game/${this.roomName}`);
             },
             maxPlayerLimit(cardsInGame) {
                 let numberTotal = 0;
 
-                for (const number in cardsInGame) {
+                for (let number in cardsInGame) {
                     numberTotal = numberTotal + parseInt(cardsInGame[number]);
                 }
 
                 return numberTotal;
+            },
+            setGame() {
+                this.cardChoosing = this.listGamePersonnalized[this.gamePersonnalizedChoose];
+                this.playerInGame = this.maxPlayerLimit(this.cardChoosing);
+                this.dialog = false;
             }
         },
         sockets: {
         },
         name: "CreateRoom",
-        components: {Card}
+        components: {Header, Card}
     }
 </script>
 
 <style scoped>
-    /*
- * Design carte des différents rôles
- */
-    .btn-card-counter {
-        margin-right: 2%;
-        display: inline;
-        font-size: 50px;
-        cursor: pointer;
-        user-select: none;
-    }
 
-    .counter-card {
-        width: 100%;
-        text-align: left;
-        display: block;
-        font-size: 30px;
-    }
-
-    .card-list {
-        margin-bottom: 2em;
-    }
-
-    .card {
-        text-align: center;
-        cursor: pointer;
-        position: relative;
-        margin: 0.3em;
-        background-color: #393a40 !important;
-        color: #b5a1a1;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
-        user-select: none;
-        width: 157px;
-        height: 100%;
-    }
-
-    .card:hover {
-        background-color: #55565c !important;
-    }
-
-    .row-card {
-        height: 214px;
-        margin-bottom: 1%;
-    }
-
-    .card-title {
-        font-size: 15px;
-        display: block;
-        text-align: left;
-        font-weight: bold;
-    }
-
-    .card-body {
-        padding: 5% !important;
-    }
-
-    .btn-incremented-counter {
-        float: right;
-    }
-
-    .btn-decremented-counter {
-        float: right;
-        margin-right: 4%;
-    }
-
-    .card-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
 
     /*
  * Design des templates pour rejoindre ou créer une partie
@@ -222,35 +205,40 @@
         margin-top: 5%;
     }
 
-    input[type=text] {
-        background-color: transparent;
-        border: 1px solid #8a7a81;
-        caret-color: gray;
-        margin: 0.5em 0 0em 0;
-        color: #ab3f3f !important;
-        padding: 0.9em;
-        height: 1.2em;
-        width: 12em;
-        border-radius: 5px;
-        font-size: 1.1em;
+    .custom-loader {
+        animation: loader 1s infinite;
+        display: flex;
     }
-
-    input:focus {
-        background-color: transparent !important;
+    @-moz-keyframes loader {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
-
-    @media screen and (max-width: 370px) {
-        .card {
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-            margin: 0.3em;
-            background-color: #393a40 !important;
-            color: #b5a1a1;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
-            user-select: none;
-            width: 130px;
-            height: 100%;
+    @-webkit-keyframes loader {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    @-o-keyframes loader {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    @keyframes loader {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
         }
     }
 </style>

@@ -1,39 +1,37 @@
 <template >
     <div class="join-room-div">
-        <h2 class="head-title-form">REJOINDRE UNE PARTIE</h2>
-
+        <Header></Header>
         <form @submit.prevent="submitFormJoinRoom" id="formJoinRoom">
-            <label class="main-menu-label">Nom de la partie
-                <span>
-                    <input v-model="nameRoom" type="text" class="form-control" aria-label="roomToJoin" id="roomToJoin" name="roomToJoin" aria-describedby="basic-addon1">
-                    <p class="game-name-error error"></p>
-                </span>
-            </label>
+            <v-text-field v-model="nameRoom" id="nameRoom" name="nameRoom" label="Nom de la partie" outlined></v-text-field>
+            <v-alert v-if="roomNameError" border="top" color="red lighten-2" dark>Veuillez rentrer un nom de partie</v-alert>
 
-            <label class="main-menu-label">Pseudo
-                <span>
-                    <input v-model="pseudo" type="text" class="form-control" aria-label="pseudoForJoin" name="pseudo" id="pseudoForJoin" aria-describedby="basic-addon1">
-                    <p class="player-name-error error"></p>
-                </span>
-            </label>
+            <v-text-field v-model="pseudo" name="pseudo" id="pseudoForCreate" label="Pseudo" outlined></v-text-field>
+            <v-alert v-if="pseudoError" border="top" color="red lighten-2" dark>Veuillez rentrer un pseudo</v-alert>
 
             <div class="group-button-join">
-                <router-link role="button" class="btn btn-lg back-button hvr-icon-back hvr-shutter-out-horizontal" id="backJoinRoom" to="/"><i class="fa fa-chevron-circle-left hvr-icon"></i>  Retour</router-link>
-                <button type="submit" role="button" class="btn btn-lg submit-button hvr-icon-forward" id="submitJoinRoom">Rejoindre  <i class="fa fa-chevron-circle-right hvr-icon"></i></button>
+                <v-btn to="/" role="button" class="btn btn-lg back-button" id="backCreateRoom">
+                    Retour
+                </v-btn>
+                <v-btn type="submit" :loading="errorsExist === false" :disabled="errorsExist === false" class="ma-2 submit-button" id="submitCreateRoom">
+                    Rejoindre
+                </v-btn>
             </div>
         </form>
     </div>
 </template>
 
 <script>
+    import Header from "./Header";
     export default {
+        components: {Header},
         data() {
             return {
                 nameRoom: null,
+                pseudoError: null,
                 pseudo: null,
                 roomNameError : false,
-                pseudoError : false,
-                cardError : false
+                cardError : false,
+                errorsExist: null
             }
         },
         methods: {
@@ -49,8 +47,11 @@
                     this.pseudoError = true;
                 }
 
-                if (!this.roomNameError && !this.pseudoError && !this.cardError) {
-                    this.joinGameRoom();
+                if (!this.roomNameError && !this.pseudoError) {
+                    this.errorsExist = false;
+                    setTimeout(() => (this.joinGameRoom()), 2500);
+                } else {
+                    this.errorsExist = true;
                 }
             },
             joinGameRoom() {
