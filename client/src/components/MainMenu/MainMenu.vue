@@ -12,10 +12,7 @@
 
                             <v-list>
                                 <v-list-item to="/create">
-                                    <v-list-item-title>Partie personnalisée</v-list-item-title>
-                                </v-list-item>
-                                <v-list-item to="/create">
-                                    <v-list-item-title>Partie préremplie</v-list-item-title>
+                                    <v-list-item-title>Mode classique</v-list-item-title>
                                 </v-list-item>
                                 <v-list-item disabled>
                                     <v-list-item-title disabled="true">Mode enragé (soon)</v-list-item-title>
