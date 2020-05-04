@@ -10,6 +10,8 @@
                 <v-alert v-if="pseudoError" border="top" color="red lighten-2" dark>Veuillez rentrer un pseudo</v-alert>
             </div>
 
+            <v-btn class="btn btn-lg recommended-composition" color="#801414b5" dark v-on:click="dialog = true">Compositions recommandées</v-btn>
+
             <div class="text-center">
                 <v-sheet color="#801414b5">Partie a {{ playerInGame }} joueur(s)</v-sheet>
             </div>
@@ -27,31 +29,28 @@
                     Créer
                 </v-btn>
                 <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
-                    <template v-slot:activator="{ on }">
-                        <v-btn color="#801414b5" dark v-on="on">Compositions recommandées</v-btn>
-                    </template>
                     <v-card>
-                        <v-toolbar dark color="primary">
+                        <v-toolbar dark color="#801414b5">
                             <v-btn icon dark @click="dialog = false">
                                 <v-icon>mdi-close</v-icon>
                             </v-btn>
                             <v-toolbar-title>Compostions</v-toolbar-title>
                             <v-spacer></v-spacer>
                             <v-toolbar-items>
-                                <v-btn dark text @click="setGame">Choisir</v-btn>
+                                <v-btn dark text @click="setRecommendedGame">Choisir</v-btn>
                             </v-toolbar-items>
                         </v-toolbar>
                         <v-list three-line subheader>
                             <v-subheader>General</v-subheader>
-                            <v-radio-group v-model="gamePersonnalizedChoose">
-                                <v-list-item v-for="(game, key) in listGamePersonnalized" :key="key">
+                            <v-radio-group v-model="recommendedGameChoose">
+                                <v-list-item v-for="(game, key) in listRecommendedGame" :key="key">
                                     <v-list-item-action>
-                                        <v-radio :key="key" :value="key"></v-radio>
+                                        <v-radio :key="key" :value="key">{{ key }}</v-radio>
                                     </v-list-item-action>
                                     <v-list-item-content>
-                                        <v-list-item-title>{{ key }}</v-list-item-title>
+                                        <v-list-item-title>{{ game.libelle }}</v-list-item-title>
                                         <ul>
-                                            <li v-for="(role, index) in game" :key="index">{{ cards[index - 1].name }} - {{ role }}</li>
+                                            <li v-for="(role, index) in game.recommendedGame" :key="index">{{ cards[index - 1].name }} - {{ role }}</li>
                                         </ul>
                                     </v-list-item-content>
                                 </v-list-item>
@@ -65,29 +64,27 @@
 </template>
 
 <script>
-    import Card from "./_partials/Card";
     import cards from "../../../public/js/cards";
+    import recommendedGame from "../../../public/js/recommended_game";
+    import Card from "./_partials/Card";
     import * as _ from 'lodash';
     import Header from "./Header";
 
     export default {
         data() {
             return {
+                cards: cards,
                 roomName: null,
                 pseudo: null,
-                cards: cards,
-                cardChoosing: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0},
+                cardChoosing: null,
+                errorExist: null,
+                recommendedGameChoose: null,
                 roomNameError : false,
                 pseudoError : false,
                 cardError : false,
-                errorExist: null,
+                dialog: false,
                 playerInGame: 0,
-                listGamePersonnalized: {
-                    1 : {1: 4, 2: 5, 3: 1, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0},
-                    2 : {1: 3, 2: 7, 3: 8, 4: 8, 5: 0, 6: 0, 7: 0, 8: 0}
-                },
-                gamePersonnalizedChoose: null,
-                dialog: false
+                listRecommendedGame: recommendedGame
             }
         },
         methods: {
@@ -136,11 +133,20 @@
 
                 return numberTotal;
             },
-            setGame() {
-                this.cardChoosing = this.listGamePersonnalized[this.gamePersonnalizedChoose];
+            setRecommendedGame() {
+                this.cardChoosing = this.listRecommendedGame[this.recommendedGameChoose].recommendedGame;
                 this.playerInGame = this.maxPlayerLimit(this.cardChoosing);
                 this.dialog = false;
-            }
+            },
+        },
+        mounted() {
+            const card = {};
+
+            _.forEach(this.cards, function(value) {
+                card[value.id] = 0;
+            });
+
+            this.cardChoosing = card;
         },
         sockets: {
         },
@@ -150,12 +156,9 @@
 </script>
 
 <style scoped>
-
-
     /*
- * Design des templates pour rejoindre ou créer une partie
- */
-
+    * Design des templates pour rejoindre ou créer une partie
+    */
     .create-room-div {
         padding: 3em;
     }
@@ -174,6 +177,13 @@
         background-color: #801414b5 !important;
         color: #c4c4c4 !important;
         border-radius: 0 !important;
+    }
+
+    .recommended-composition {
+        background-color: #801414b5 !important;
+        color: #c4c4c4 !important;
+        border-radius: 0 !important;
+        margin-bottom: 5px;
     }
 
     .error {

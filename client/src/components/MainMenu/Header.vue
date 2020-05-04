@@ -1,7 +1,7 @@
 <template>
     <router-link exact to="/">
         <div class="game-logo">
-            <img id="logo" src="images/logo-dog2.gif"/>
+            <img id="logo" src="images/logo.png" alt="Logo"/>
         </div>
     </router-link>
 </template>
@@ -31,7 +31,7 @@
     @media (max-width: 768px) {
         #logo {
             width: 70%;
-            margin-bottom: 40%;
+            margin-bottom: 20%;
         }
     }
 </style>

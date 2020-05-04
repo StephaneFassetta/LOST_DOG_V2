@@ -8,7 +8,7 @@
                         <i data-toggle="tooltip" data-html="true" data-placement="top" style="margin-left: 5%" class="question-mark fa fa-question-circle" aria-hidden="true"></i>
                     </p>
                     <p @click="addCard(card)" class="btn-incremented-counter btn-card-counter">+</p>
-                    <p class="counter-card" :id="card.id">{{ this.cardChoose[this.card.id] }}</p>
+                    <p class="counter-card" :id="card.id">{{ this.cardChoose[card.id] }}</p>
                 </div>
                 <div class="card-bottom" :id="card.id">
                     <p @click="removeCard(card)" class="btn-decremented-counter btn-card-counter">-</p>
@@ -120,7 +120,7 @@
             color: #b5a1a1;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
             user-select: none;
-            width: 130px;
+            width: 141px;
             height: 100%;
         }
     }
