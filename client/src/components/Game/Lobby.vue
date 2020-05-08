@@ -11,16 +11,15 @@
             <p v-for="(player, index) in game.players" :key="index" class="list-players">{{ player.pseudo }}</p>
         </div>
 
-        <v-btn @click="statusGame('launch')" v-if="game.admin.socketId === self.socketId" class="btn" v-bind:class="{ 'btn-ready-game': roomFull === true, 'btn-wait-player': roomFull === false}" role="button" id="btn-launch-game" :loading="startGame" :disabled="roomFull === false">
+        <v-btn @click="statusGame('launch')" v-if="game.admin.socketId === self.socketId" class="btn" v-bind:class="{ 'btn-ready-game': roomIsFull === true, 'btn-wait-player': roomIsFull === false}" role="button" id="btn-launch-game" :loading="btnStartGame" :disabled="roomIsFull === false">
             Lancer la partie
             <template v-slot:loader>
                 <span>{{ timeBeforeLaunch }}</span>
             </template>
         </v-btn>
+        <v-btn @click="statusGame('cancel')" v-if="game.admin.socketId === self.socketId && btnStartGame" class="btn btn-cancel-game" role="button" id="btn-cancel-game">Annuler</v-btn>
 
-        <p>La partie débutera dans {{ timeBeforeLaunch }}</p>
-
-        <v-btn @click="statusGame('cancel')" v-if="startGame" class="btn btn-cancel-game" role="button" id="btn-cancel-game">Annuler</v-btn>
+        <p v-if="self.socketId !== game.admin.socketId && btnStartGame">La partie débutera dans {{ timeBeforeLaunch }}</p>
 
         <v-snackbar v-model="adminChange" :timeout="snackbarTimeout">
             L'admin à changer, veuillez l'identifier.
@@ -34,8 +33,8 @@
         props:['game', 'self'],
         data() {
             return {
-                startGame: false,
-                cancelGame: false,
+                btnStartGame: false,
+                btnCancelGame: false,
                 adminChange: false,
                 timeBeforeLaunch: 5,
                 snackbarTimeout: 2000,
@@ -46,22 +45,13 @@
             playerNumber: function () {
                 return `${this.game.players.length} / ${this.game.size}`;
             },
-            roomFull: function() {
+            roomIsFull: function() {
                 return this.game.players.length === this.game.size;
             }
         },
         methods: {
             statusGame: function(action) {
-                clearInterval();
-                if (action === 'launch') {
-                    this.startGame = true;
-                    this.cancelGame = false;
-                    this.countDownTimer('launch');
-                } else if (action === 'cancel'){
-                    this.startGame = false;
-                    this.cancelGame = true;
-                    this.countDownTimer('reset');
-                }
+                this.$socket.emit('statusGame', action);
             },
             countDownTimer(action) {
                 if (action === 'launch') {
@@ -70,7 +60,7 @@
                             this.timeBeforeLaunch -= 1
                         }
                     }, 1000);
-                } else if (action === 'reset') {
+                } else if (action === 'cancel') {
                     this.timeBeforeLaunch = 5;
 
                     if (this.intervalID) {
@@ -84,6 +74,17 @@
         sockets: {
             adminChange: function() {
                 this.adminChange = true
+            },
+            statusGame: function (action) {
+                if (action === 'launch') {
+                    this.btnStartGame = true;
+                    this.btnCancelGame = false;
+                } else if (action === 'cancel'){
+                    this.btnStartGame = false;
+                    this.btnCancelGame = true;
+                }
+
+                this.countDownTimer(action);
             }
             //__ TODO : DECLENCHER L'EVENEMENT DISCONNECT AU SERVEUR LORSQUE LE JOUEUR CHANGE DE PAGE SANS QUITTER LA PAGE LOST DOG
         },
@@ -104,10 +105,11 @@
         margin-top: 5%;
     }
 
-    .btn-cancel-player {
-        color: #c4c4c4 !important;
+    .btn-cancel-game {
+        background-color: #792020 !important;
         border-radius: 0 !important;
         margin-top: 5%;
+        margin-left: 1%;
     }
 
     .head-title-lobby {

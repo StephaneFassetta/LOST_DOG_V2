@@ -109,6 +109,10 @@ io.on('connection', function(socket) {
         }
     });
 
+    socket.on('statusGame', function(action) {
+        io.sockets.to(socket.game.name).emit('statusGame', action);
+    });
+
     socket.on('startGame', function(nameRoom) {
         let gameToStart = roomsActive[nameRoom.name];
 
@@ -124,6 +128,7 @@ io.on('connection', function(socket) {
             io.sockets.to(gameToStart.name).emit('launchGame', gameToStart);
         }
     });
+
     socket.on('updateActualGame', function(nameRoom) {
         const game = roomsActive[nameRoom.name];
 
