@@ -64,16 +64,17 @@
 </template>
 
 <script>
+    import Card from "./_partials/Card";
+    import Header from "./Header";
     import cards from "../../../public/js/cards";
     import recommendedGame from "../../../public/js/recommended_game";
-    import Card from "./_partials/Card";
     import * as _ from 'lodash';
-    import Header from "./Header";
 
     export default {
         data() {
             return {
                 cards: cards,
+                listRecommendedGame: recommendedGame,
                 roomName: null,
                 pseudo: null,
                 cardChoosing: null,
@@ -83,8 +84,7 @@
                 pseudoError : false,
                 cardError : false,
                 dialog: false,
-                playerInGame: 0,
-                listRecommendedGame: recommendedGame
+                playerInGame: 0
             }
         },
         methods: {
@@ -121,8 +121,9 @@
                 this.playerInGame--
             },
             createGameRoom() {
-                this.$socket.emit('createGameRoom', {'cards': cards, 'admin': {'pseudo': this.pseudo, 'socketId': this.$socket.id}, 'gameRoom': {'roomName': this.roomName, 'playerLimit':  this.maxPlayerLimit(this.cardChoosing), 'chooseCard': this.cardChoosing}});
-                this.$router.push(`/game/${this.roomName}`);
+                let resumeGame = {'cards': cards, 'admin': {'pseudo': this.pseudo, 'socketId': this.$socket.id}, 'gameRoom': {'roomName': this.roomName, 'playerLimit':  this.maxPlayerLimit(this.cardChoosing), 'chooseCard': this.cardChoosing}};
+                this.$socket.emit('createGameRoom', resumeGame);
+                this.$router.push({name: 'game', params: {name: this.roomName, self: resumeGame.admin}});
             },
             maxPlayerLimit(cardsInGame) {
                 let numberTotal = 0;
@@ -139,7 +140,7 @@
                 this.dialog = false;
             },
         },
-        mounted() {
+        created() {
             const card = {};
 
             _.forEach(this.cards, function(value) {
@@ -184,10 +185,7 @@
         color: #c4c4c4 !important;
         border-radius: 0 !important;
         margin-bottom: 5px;
-    }
-
-    .error {
-        color: red;
+        width: 100%;
     }
 
     .group-button-create {

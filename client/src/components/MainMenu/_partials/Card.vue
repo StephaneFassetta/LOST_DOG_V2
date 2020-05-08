@@ -5,7 +5,6 @@
                 <div class="card-top">
                     <p class="card-title">
                         {{ card.name }}
-                        <i data-toggle="tooltip" data-html="true" data-placement="top" style="margin-left: 5%" class="question-mark fa fa-question-circle" aria-hidden="true"></i>
                     </p>
                     <p @click="addCard(card)" class="btn-incremented-counter btn-card-counter">+</p>
                     <p class="counter-card" :id="card.id">{{ this.cardChoose[card.id] }}</p>

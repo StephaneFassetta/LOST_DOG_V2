@@ -9,7 +9,6 @@
                             <template v-slot:activator="{ on }">
                                 <v-btn v-on="on" role="button" class="btn btn-lg main-button" id="btnCreateRoom" height="60">Crée une partie</v-btn>
                             </template>
-
                             <v-list>
                                 <v-list-item to="/create">
                                     <v-list-item-title>Mode classique</v-list-item-title>
@@ -58,7 +57,7 @@
                             <div class="text-center">
                                 <v-dialog v-model="dialog" width="500" scrollable>
                                     <v-card>
-                                        <v-card-title class="headline grey lighten-2" primary-title v-html="cardTitle">
+                                        <v-card-title class="headline" primary-title v-html="cardTitle">
                                         </v-card-title>
 
                                         <v-card-text v-html="cardDescription">
@@ -96,7 +95,6 @@
                 this.cardTitle = cards[idCard].name;
                 this.cardDescription = cards[idCard].description;
                 this.dialog = true;
-                return true;
             }
         }
     }
@@ -104,14 +102,14 @@
 
 <style scoped>
     /*
- * Design du body, html et container
- */
+     * Design du body, html et container
+     */
     html, body {
         margin: 0 auto;
         width: 100%;
         height: 100%;
         color: #bfb8b8;
-        font-family: sans-serif;
+        font-family: "DarkPoestry", sans-serif;
         background-color: #23282b !important;
     }
 

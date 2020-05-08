@@ -2,7 +2,7 @@
     <div class="join-room-div">
         <Header></Header>
         <form @submit.prevent="submitFormJoinRoom" id="formJoinRoom">
-            <v-text-field v-model="nameRoom" id="nameRoom" name="nameRoom" label="Nom de la partie" outlined></v-text-field>
+            <v-text-field v-model="roomName" id="nameRoom" name="nameRoom" label="Nom de la partie" outlined></v-text-field>
             <v-alert v-if="roomNameError" border="top" color="red lighten-2" dark>Veuillez rentrer un nom de partie</v-alert>
 
             <v-text-field v-model="pseudo" name="pseudo" id="pseudoForCreate" label="Pseudo" outlined></v-text-field>
@@ -26,12 +26,12 @@
         components: {Header},
         data() {
             return {
-                nameRoom: null,
-                pseudoError: null,
+                roomName: null,
                 pseudo: null,
+                pseudoError: null,
+                errorsExist: null,
                 roomNameError : false,
-                cardError : false,
-                errorsExist: null
+                cardError : false
             }
         },
         methods: {
@@ -39,7 +39,7 @@
                 this.roomNameError = false;
                 this.pseudoError = false;
 
-                if (!this.nameRoom) {
+                if (!this.roomName) {
                     this.roomNameError = true;
                 }
 
@@ -55,8 +55,9 @@
                 }
             },
             joinGameRoom() {
-                this.$socket.emit('joinGameRoom', {'nameRoom': this.nameRoom, 'player': {'pseudo': this.pseudo, 'socketId': this.$socket.id}});
-                this.$router.push(`/game/${this.nameRoom}`);
+                let self = {'nameRoom': this.roomName, 'player': { 'pseudo': this.pseudo, 'socketId': this.$socket.id }};
+                this.$socket.emit('joinGameRoom', self);
+                this.$router.push({name: 'game', params: {name: this.roomName, self: self.player}});
             }
         },
         sockets: {
@@ -67,12 +68,8 @@
 
 <style scoped>
     /*
- * Design des templates pour rejoindre ou créer une partie
- */
-
-    .create-room-div {
-        padding: 3em;
-    }
+     * Design des templates pour rejoindre ou créer une partie
+     */
 
     .join-room-div {
         padding: 3em;
@@ -90,33 +87,8 @@
         border-radius: 0 !important;
     }
 
-    .error {
-        color: red;
-    }
-
-    .group-button-create {
-        text-align: left;
-    }
-
     .group-button-join {
         text-align: left;
-    }
-
-    .head-title-form {
-        filter: drop-shadow(2px 2px 4px black);
-        color: #992626;
-        text-align: left;
-        margin-bottom: 1em;
-        font-size: 4em;
-    }
-
-    .head-title {
-        filter: drop-shadow(2px 2px 4px black);
-        color: #992626;
-        margin-bottom: 5%;
-        font-size: 4em;
-        text-align: center;
-        margin-top: 5%;
     }
 
     input[type=text] {

@@ -12,13 +12,3 @@ export function foreach(arr, func) {
         func(i, arr[i]);
     }
 }
-
-export function isAdmin(player) {
-    let isAdmin = false;
-
-    if (player.isAdmin == 1) {
-        isAdmin = true;
-    }
-
-    return isAdmin;
-}

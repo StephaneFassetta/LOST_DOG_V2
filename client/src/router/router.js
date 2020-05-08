@@ -27,8 +27,7 @@ export default new Router({
         {
             name: "game",
             component: Game,
-            path: "/game/:name",
-            props: true
+            path: "/game/:name"
         }
     ]
 });

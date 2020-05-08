@@ -5,6 +5,7 @@ const cors = require("cors");
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const _ = require('lodash');
 
 //__ Library
 const app = require('./bin/www').app;
@@ -41,8 +42,6 @@ app.use('/classes', express.static(path.join(__dirname, 'classes')));
 io.on('connection', function(socket) {
     console.log('Connexion au socket');
 
-
-
     socket.on('createGameRoom', function(params)
     {
         const admin = new Admin(params.admin.pseudo, params.admin.socketId);
@@ -59,13 +58,14 @@ io.on('connection', function(socket) {
 
         socket.join(gameRoom.name);
         roomsActive[gameRoom.name] = gameRoom;
-        socket.gameRoom = gameRoom;
-        console.log('Une room vient d\'être créé. Nom de la room : ' + gameRoom.name);
+        socket.game = gameRoom;
+        console.log(`Room is creating : ${gameRoom.name}`);
 
         io.sockets.to(gameRoom.name).emit('refreshInfosUsersAndGame', { 'game' : gameRoom, 'user' : admin, 'event' : 'createGameRoom'});
     });
 
-    socket.on('joinGameRoom', function(params) {
+    socket.on('joinGameRoom', function(params)
+    {
         const player = params.player;
         const roomName = params.nameRoom;
         const gameExist = roomsActive[roomName];
@@ -74,34 +74,38 @@ io.on('connection', function(socket) {
             socket.join(roomName);
             socket.game = gameExist;
             gameExist.players.push(player);
-            console.log('Vous avez rejoins une room. Nom de la room : ' + roomName);
+            console.log(`You are join room : ${gameExist.name}`);
             io.sockets.to(roomName).emit('refreshInfosUsersAndGame', { 'game' : gameExist, 'user' : player, 'event' : 'joinGameRoom'});
         }
     });
 
-
-
-
-
     socket.on('disconnect', function () {
-        if (socket.game) {
+        if (!_.isEmpty(socket.game)) {
             const gameExist = socket.game;
-            const playerLeave = gameExist.players.find((player) => player.socketId === socket.id);
+            const userLeave = null;
 
-            Object.keys(gameExist.players).forEach(function(key) {
-                if (gameExist.players[key].socketId == socket.id) {
-                    console.log('Le joueur ' + gameExist.players[key].name + ' a quitté la partie !');
-                    gameExist.players.splice(gameExist.players.indexOf(gameExist.players[key]));
-                    socket.leave(gameExist.name);
+            if (gameExist.admin.socketId === socket.id) {
+                const userLeave = gameExist.admin;
+
+                if (gameExist.players.length < 1) {
+                    console.log(`Delete room because she is empty : ${gameExist.name}`);
+                    delete roomsActive[gameExist.name];
+                    return false;
+                } else {
+                    gameExist.admin.name = gameExist.players[0].pseudo
+                    gameExist.admin.socketId = gameExist.players[0].socketId;
+                    gameExist.players.splice(0, 1);
+                    console.log(`Admin left the game, he is replaced by ${gameExist.admin.name}`);
+                    io.sockets.to(gameExist.name).emit('adminChange');
                 }
-            });
-
-            if (gameExist.players.length < 1) {
-                console.log(gameExist.name);
-                delete roomsActive[gameExist.name];
             } else {
-                io.sockets.to(gameExist.name).emit('refreshInfosUsersAndGame', {'game' : gameExist, 'user' : playerLeave, 'event' : 'disconnectToGame'});
+                const userLeave = gameExist.players.find((player) => player.socketId === socket.id);
+                _.remove(gameExist.players, (player) => player.socketId === socket.id);
+                console.log(`${userLeave.pseudo} left the game !`);
             }
+
+            socket.leave(gameExist.name);
+            io.sockets.to(gameExist.name).emit('refreshInfosUsersAndGame', {'game' : gameExist, 'user' : userLeave, 'event' : 'disconnectToGame'});
         }
     });
 
@@ -129,11 +133,13 @@ io.on('connection', function(socket) {
 
         io.sockets.to(game.name).emit('retrieveActualGame', game);
     });
+
     socket.on('vibratePlayer', function(informations) {
         const game = roomsActive[informations.nameRoom];
         let player = game.players.find((player) => player.socketId === informations.socketId);
         io.sockets.to(informations.socketId).emit('vibratePlayer', player);
     });
+
     socket.on('killPlayer', function(informations) {
         let game = roomsActive[Object.keys(roomsActive).find((key) => key === informations.nameRoom)];
         let socketId = informations.socketId;
