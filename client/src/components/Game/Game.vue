@@ -1,12 +1,11 @@
 <template>
     <div class="room-container">
-        <Header></Header>
         <div v-if="fullyLoaded">
             <div v-if="game.status === 'lobby'" class="lobby-div">
                 <Lobby :game="game" :self="self"></Lobby>
             </div>
             <div v-if="game.status === 'in-game'" class="in-game-div">
-                <h1>INGAME.</h1>
+                 <InGame :game="game" :self="self"></InGame>
             </div>
         </div>
     </div>
@@ -14,7 +13,7 @@
 
 <script>
     import Lobby from "./Lobby";
-    import Header from "../MainMenu/Header";
+    import InGame from "./InGame";
 
     export default {
         data() {
@@ -33,7 +32,7 @@
         },
 
         name: "Game",
-        components: {Header, Lobby}
+        components: {InGame, Lobby}
     }
 </script>
 

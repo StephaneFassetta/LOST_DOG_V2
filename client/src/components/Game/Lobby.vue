@@ -1,5 +1,6 @@
 <template>
     <div class="game-informations" style="text-align: center">
+        <Header></Header>
         <h2 class="head-title-lobby">{{ game.admin.name }} <v-icon color="#801414b5">fas fa-crown</v-icon></h2>
 
         <div class="informations-staging">
@@ -8,7 +9,7 @@
         </div>
 
         <div v-if="game.players" class="list-people" id="list-people">
-            <p v-for="(player, index) in game.players" :key="index" class="list-players">{{ player.pseudo }}</p>
+            <p v-for="(player, index) in game.players" :key="index" class="list-players">{{ player.name }}</p>
         </div>
 
         <v-btn @click="statusGame('launch')" v-if="game.admin.socketId === self.socketId" class="btn" v-bind:class="{ 'btn-ready-game': roomIsFull === true, 'btn-wait-player': roomIsFull === false}" role="button" id="btn-launch-game" :loading="btnStartGame" :disabled="roomIsFull === false">
@@ -58,6 +59,8 @@
                     this.intervalID = setInterval(() => {
                         if (this.timeBeforeLaunch > 0) {
                             this.timeBeforeLaunch -= 1
+                        } else {
+                            this.$socket.emit('startGame', this.game);
                         }
                     }, 1000);
                 } else if (action === 'cancel') {

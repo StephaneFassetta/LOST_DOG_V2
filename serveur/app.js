@@ -14,6 +14,7 @@ const tools = require('./classes/Tools');
 const GameRoom = require('./classes/GameRoom');
 const Admin = require('./classes/Admin');
 const Card = require('./classes/Card');
+const Player = require('./classes/Player');
 
 //__ Routing
 const indexRouter = require('./routes/index');
@@ -66,7 +67,7 @@ io.on('connection', function(socket) {
 
     socket.on('joinGameRoom', function(params)
     {
-        const player = params.player;
+        const player = new Player(params.player.pseudo, null, params.player.socketId);
         const roomName = params.nameRoom;
         const gameExist = roomsActive[roomName];
 
@@ -116,16 +117,16 @@ io.on('connection', function(socket) {
     socket.on('startGame', function(nameRoom) {
         let gameToStart = roomsActive[nameRoom.name];
 
-        if (gameToStart && gameToStart.status == 'lobby' && gameToStart.size == gameToStart.cards.length && gameToStart.size == gameToStart.players.length) {
-            console.log('La partie ' + gameToStart.name + ' a été lancé ! C\'est parti !');
-            gameToStart.status = 'started';
-            tools.shuffleArray(gameToStart.cards);
+        if (gameToStart && gameToStart.status === 'lobby' && gameToStart.size === gameToStart.cards.length && gameToStart.size === gameToStart.players.length) {
+            console.log(`La partie ${gameToStart.name} a été lancé ! C'est parti !`);
+            gameToStart.status = 'in-game';
+            _.shuffle(gameToStart.cards);
 
-            gameToStart.players.forEach(function (element, index) {
-                element.role = gameToStart.cards[index];
+            _.forEach(gameToStart.players, function(player, index) {
+                player.role = gameToStart.cards[index]
             });
 
-            io.sockets.to(gameToStart.name).emit('launchGame', gameToStart);
+            io.sockets.to(gameToStart.name).emit('refreshInfosUsersAndGame', {'game' : gameToStart, 'event' : 'startGame'});
         }
     });
 

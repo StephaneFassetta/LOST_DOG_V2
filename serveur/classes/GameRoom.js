@@ -7,5 +7,6 @@ module.exports = class GameRoom {
         this.admin = admin;
         this.status = "lobby";
         this.lastPlayerKilled = null;
+        this.logs = [];
     }
 }
