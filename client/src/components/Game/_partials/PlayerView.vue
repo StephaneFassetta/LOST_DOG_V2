@@ -3,6 +3,10 @@
 		<full-page ref="fullpage" :options="options" id="fullpage">
 			<v-container class="section">
 				<v-row justify="center" align="center">
+					<v-icon x-large color="yellow" v-ripple v-if="time === 'day'">fas fa-sun</v-icon>
+					<v-icon x-large color="rgb(54, 31, 181)" v-ripple v-else>fas fa-moon</v-icon>
+				</v-row>
+				<v-row justify="center" align="center">
 					<label class="animate__animated animate__fadeInUp">
 						<input type="checkbox"/>
 						<div class="game-card">
@@ -32,13 +36,22 @@
 						</div>
 					</label>
 				</v-row>
-				<div class="arrow bounce" @click="$refs.fullpage.api.moveSectionDown()"></div>
+
+				<v-badge :content="logsNotShow" :value="logsNotShow" color="green" overlap class="arrow bounce">
+					<v-icon large class="notif-bounce" @click="$refs.fullpage.api.moveSectionDown()" v-intersect="onIntersect">mdi-comment-check-outline</v-icon>
+				</v-badge>
 			</v-container>
 			<v-container fluid class="section" id="section-2">
-				<ul class="logs" v-if="!this._.isEmpty(game.logs)">
-					<li v-for="(log, index) in game.logs" :key="index">{{ log }}</li>
-				</ul>
-				<p v-else>Aucun logs pour le moment.</p>
+				<v-row align="center" justify="center">
+					<v-list class="logs" v-if="!logsIsEmpty">
+						<v-list-item v-for="(log, index) in game.logs" :key="index">
+							<v-list-item-content>
+								<v-list-item-title >{{ log }}</v-list-item-title>
+							</v-list-item-content>
+						</v-list-item>
+					</v-list>
+					<p v-else>Aucun logs pour le moment.</p>
+				</v-row>
 			</v-container>
 		</full-page>
 	</div>
@@ -55,6 +68,8 @@
                 options: {
                     licenseKey: 'FDF53318-281C4EF2-9930AFE4-E2D4F795'
                 },
+				time: null,
+				logsShow: 0
             }
         },
         computed: {
@@ -70,7 +85,28 @@
             },
 			skillCons: function() {
                 return this.card.skills.cons;
+            },
+			logsTotal: function() {
+                return this.game.logs.length;
+            },
+			logsNotShow: function() {
+                return this.logsTotal - this.logsShow;
+            },
+			logsIsEmpty: function () {
+                return this._.isEmpty(this.game.logs)
             }
+        },
+		sockets: {
+            setTime: function(time) {
+                this.time = time;
+            }
+		},
+        methods: {
+            onIntersect (entries) {
+                if (!entries[0].isIntersecting) {
+                    this.logsShow = this.logsTotal;
+                }
+            },
         },
         name: "PlayerView",
     }
@@ -88,6 +124,7 @@
 		-webkit-transform: translate(-50%, -50%);
 		transform: translate(-50%, -50%);
 		cursor: pointer;
+		margin-top: 5%;
 	}
 
 	.game-card {
@@ -253,6 +290,15 @@
 		}
 	}
 
+	@keyframes notif-bounce {
+		20%, 50%, 20%, 20%, 20% {
+			-moz-transform: translateY(0);
+			-ms-transform: translateY(0);
+			-webkit-transform: translateY(0);
+			transform: translateY(0);
+		}
+	}
+
 	.arrow {
 		position: fixed;
 		bottom: 50%;
@@ -260,7 +306,6 @@
 		margin-left: -20px;
 		width: 40px;
 		height: 40px;
-		background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEycHgiIGhlaWdodD0iNTEycHgiIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1MTIgNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0yOTMuNzUxLDQ1NS44NjhjLTIwLjE4MSwyMC4xNzktNTMuMTY1LDE5LjkxMy03My42NzMtMC41OTVsMCwwYy0yMC41MDgtMjAuNTA4LTIwLjc3My01My40OTMtMC41OTQtNzMuNjcyICBsMTg5Ljk5OS0xOTBjMjAuMTc4LTIwLjE3OCw1My4xNjQtMTkuOTEzLDczLjY3MiwwLjU5NWwwLDBjMjAuNTA4LDIwLjUwOSwyMC43NzIsNTMuNDkyLDAuNTk1LDczLjY3MUwyOTMuNzUxLDQ1NS44Njh6Ii8+DQo8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMjIwLjI0OSw0NTUuODY4YzIwLjE4LDIwLjE3OSw1My4xNjQsMTkuOTEzLDczLjY3Mi0wLjU5NWwwLDBjMjAuNTA5LTIwLjUwOCwyMC43NzQtNTMuNDkzLDAuNTk2LTczLjY3MiAgbC0xOTAtMTkwYy0yMC4xNzgtMjAuMTc4LTUzLjE2NC0xOS45MTMtNzMuNjcxLDAuNTk1bDAsMGMtMjAuNTA4LDIwLjUwOS0yMC43NzIsNTMuNDkyLTAuNTk1LDczLjY3MUwyMjAuMjQ5LDQ1NS44Njh6Ii8+DQo8L3N2Zz4=);
 		background-size: contain;
 	}
 

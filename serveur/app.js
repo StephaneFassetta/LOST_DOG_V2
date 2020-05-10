@@ -114,6 +114,10 @@ io.on('connection', function(socket) {
         io.sockets.to(socket.game.name).emit('statusGame', action);
     });
 
+    socket.on('setTime', function(time) {
+        io.sockets.to(socket.game.name).emit('setTime', time);
+    });
+
     socket.on('startGame', function(nameRoom) {
         let gameToStart = roomsActive[nameRoom.name];
 

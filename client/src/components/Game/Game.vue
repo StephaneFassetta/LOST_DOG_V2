@@ -28,9 +28,7 @@
                 this.game = params.game;
                 this.fullyLoaded = true;
             }
-            //__ TODO : DECLENCHER L'EVENEMENT DISCONNECT AU SERVEUR LORSQUE LE JOUEUR CHANGE DE PAGE SANS QUITTER LA PAGE LOST DOG
         },
-
         name: "Game",
         components: {InGame, Lobby}
     }

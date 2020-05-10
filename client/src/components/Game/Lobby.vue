@@ -61,6 +61,7 @@
                             this.timeBeforeLaunch -= 1
                         } else {
                             this.$socket.emit('startGame', this.game);
+                            return true;
                         }
                     }, 1000);
                 } else if (action === 'cancel') {

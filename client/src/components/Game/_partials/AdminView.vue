@@ -3,11 +3,11 @@
 		<v-container fluid>
 			<p style="text-align: center">X journée passée.</p>
 			<v-row align="center" justify="center" class="btn-time">
-				<v-btn color="#ffc107" class="btn btn-day" role="button" id="btn-day" width="150">
+				<v-btn @click="setTime('day')" color="#ffc107" class="btn btn-day" role="button" id="btn-day" width="150">
 					Jour
 				</v-btn>
 
-				<v-btn color="rgb(54, 31, 181)" class="btn btn-night" role="button" id="btn-night" width="150">
+				<v-btn @click="setTime('night')" color="rgb(54, 31, 181)" class="btn btn-night" role="button" id="btn-night" width="150">
 					Nuit
 				</v-btn>
 			</v-row>
@@ -57,6 +57,11 @@
                 });
 
                 return alivePlayer;
+            }
+		},
+		methods: {
+            setTime: function(time) {
+                this.$socket.emit('setTime', time);
             }
 		},
         name: "AdminView"

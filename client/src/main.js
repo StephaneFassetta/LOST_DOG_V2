@@ -11,7 +11,7 @@ import 'animate.css/animate.css'
 
 Vue.config.productionTip = false;
 
-Vue.use(VueLodash, {lodash: lodash})
+Vue.use(VueLodash, {lodash: lodash});
 Vue.use(VueFullPage);
 Vue.use(new VueSocketIO({debug: true, connection: 'http://localhost:3000/'}));
 

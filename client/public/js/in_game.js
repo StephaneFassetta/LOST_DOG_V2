@@ -91,7 +91,7 @@ function showRandomInformation(player)
 }
 
 
-
-setInterval(function () {
-    socketIo.emit('updateActualGame', { name: nameRoom });
-}, 200);
+//
+// setInterval(function () {
+//     socketIo.emit('updateActualGame', { name: nameRoom });
+// }, 200);
