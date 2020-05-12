@@ -7,6 +7,11 @@
 					<v-icon x-large color="rgb(54, 31, 181)" v-ripple v-else>fas fa-moon</v-icon>
 				</v-row>
 				<v-row justify="center" align="center">
+					<v-overlay :value="showOverlay" style="bottom: 50%">
+						<div style="text-align: center; margin: 25px;" class="animate__animated animate__fadeInUp">
+							<b>{{ alertSetLifeText }}</b>
+						</div>
+					</v-overlay>
 					<label class="animate__animated animate__fadeInUp">
 						<input type="checkbox"/>
 						<div class="game-card">
@@ -36,20 +41,17 @@
 						</div>
 					</label>
 				</v-row>
-
 				<v-badge :content="logsNotShow" :value="logsNotShow" color="green" overlap class="arrow bounce">
 					<v-icon large class="notif-bounce" @click="$refs.fullpage.api.moveSectionDown()" v-intersect="onIntersect">mdi-comment-check-outline</v-icon>
 				</v-badge>
 			</v-container>
 			<v-container fluid class="section" id="section-2">
 				<v-row align="center" justify="center">
-					<v-list class="logs" v-if="!logsIsEmpty">
-						<v-list-item v-for="(log, index) in game.logs" :key="index">
-							<v-list-item-content>
-								<v-list-item-title >{{ log }}</v-list-item-title>
-							</v-list-item-content>
-						</v-list-item>
-					</v-list>
+					<ul class="logs" v-if="!logsIsEmpty">
+						<li v-for="(log, index) in game.logs" :key="index">
+							{{ log }}
+						</li>
+					</ul>
 					<p v-else>Aucun logs pour le moment.</p>
 				</v-row>
 			</v-container>
@@ -69,7 +71,9 @@
                     licenseKey: 'FDF53318-281C4EF2-9930AFE4-E2D4F795'
                 },
 				time: null,
-				logsShow: 0
+				logsShow: 0,
+                alertSetLifeText: '',
+				showOverlay: false
             }
         },
         computed: {
@@ -99,6 +103,19 @@
 		sockets: {
             setTime: function(time) {
                 this.time = time;
+            },
+            setLifeStatus: function (params) {
+                this.showOverlay = true;
+
+                if (params.event === 'playerResurrected') {
+                    this.alertSetLifeText = `Le joueur ${params.player.name} est de retour parmis nous ! Non, ce n'est pas Jésus-Christ !`;
+                } else {
+                    this.alertSetLifeText = `Le joueur ${params.player.name} est mort ! Son rôle sera énoncé par le MDJ !`;
+                }
+
+                setTimeout(() => {
+                    this.showOverlay = false;
+                }, 3000);
             }
 		},
         methods: {
@@ -313,5 +330,9 @@
 		-moz-animation: bounce 3s infinite;
 		-webkit-animation: bounce 3s infinite;
 		animation: bounce 3s infinite;
+	}
+
+	.v-overlay__content {
+
 	}
 </style>

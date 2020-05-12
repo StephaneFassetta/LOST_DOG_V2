@@ -134,29 +134,18 @@ io.on('connection', function(socket) {
         }
     });
 
-    socket.on('updateActualGame', function(nameRoom) {
-        const game = roomsActive[nameRoom.name];
+    socket.on('setLifeStatus', function(params) {
+        const playerStatus = params.player.alive;
 
-        if (!game) {
-            return false;
+        if (playerStatus) {
+            io.sockets.to(socket.game.name).emit('setLifeStatus', {'player': params.player, 'event' : 'playerResurrected'});
+            params.game.logs.push(`Le joueur ${params.player.name} est revenu à la vie ! Jésus-Christ ? C'est toi ?!`);
+        } else {
+            io.sockets.to(socket.game.name).emit('setLifeStatus', {'player' : params.player, 'event' : 'playerKilled'});
+            params.game.logs.push(`Le joueur ${params.player.name} est mort !`);
         }
 
-        io.sockets.to(game.name).emit('retrieveActualGame', game);
-    });
-
-    socket.on('vibratePlayer', function(informations) {
-        const game = roomsActive[informations.nameRoom];
-        let player = game.players.find((player) => player.socketId === informations.socketId);
-        io.sockets.to(informations.socketId).emit('vibratePlayer', player);
-    });
-
-    socket.on('killPlayer', function(informations) {
-        let game = roomsActive[Object.keys(roomsActive).find((key) => key === informations.nameRoom)];
-        let socketId = informations.socketId;
-        let player = game.players.find((player) => player.socketId === socketId);
-        player.alive = false;
-        game.lastPlayerKilled = player;
-        io.sockets.to(game.name).emit('killPlayer', game);
+        io.sockets.to(socket.game.name).emit('refreshInfosUsersAndGame', {'game' : params.game, 'event' : 'setLifeStatus'});
     });
 });
 

@@ -17,9 +17,8 @@
 			</v-row>
 
 			<v-row v-for="(player, index) in game.players" :key="index" align="center" justify="center">
-				<label class="animate__animated animate__fadeInUp">
-					<input type="checkbox"/>
-					<div class="game-card">
+				<div class="animate__animated animate__fadeInUp container-card" >
+					<div class="game-card" :class="{active: showBackCard}" @click="showBackCard = !showBackCard">
 						<div class="front">
 							<div class="banner-top animate__animated animate__fadeInDown">
 								<p class="player-name"><b>{{ player.name }}</b></p>
@@ -32,12 +31,17 @@
 						</div>
 						<div class="back">
 							<div class="back-content">
+								<v-chip class="mr-2 btn-life-status" @click.stop="setLifeStatus(player.socketId)" label>
+									<v-icon left v-if="player.alive">fas fa-skull</v-icon>
+									<v-icon left v-else>fas fa-heart</v-icon>
+									{{ player.alive ? 'Tuer' : 'Ressuciter' }}
+								</v-chip>
 							</div>
 							<div class="banner-bottom animate__animated animate__fadeInUp">
 							</div>
 						</div>
 					</div>
-				</label>
+				</div>
 			</v-row>
 		</v-container>
 	</div>
@@ -46,12 +50,17 @@
 <script>
     export default {
         props: ['game', 'self'],
+		data() {
+			return {
+				showBackCard: false
+            }
+		},
 		computed: {
             alivePlayer: function() {
                 let alivePlayer = 0;
 
                 this._.forEach(this.game.players, function (player) {
-                    if (player.alive === true) {
+                    if (player.alive) {
                         alivePlayer++
                     }
                 });
@@ -62,6 +71,11 @@
 		methods: {
             setTime: function(time) {
                 this.$socket.emit('setTime', time);
+            },
+			setLifeStatus: function (socketId) {
+                let player = this.game.players.find((player) => player.socketId === socketId);
+                player.alive = !player.alive;
+                this.$socket.emit('setLifeStatus', {'game': this.game, 'player': player});
             }
 		},
         name: "AdminView"
@@ -69,7 +83,7 @@
 </script>
 
 <style scoped>
-	label {
+	.container-card {
 		-webkit-perspective: 1000px;
 		perspective: 1000px;
 		-webkit-transform-style: preserve-3d;
@@ -112,33 +126,29 @@
 		transform: rotateX(180deg);
 		border-radius: 5%;
 		overflow-y: hidden;
+		overflow-x: hidden;
 	}
 
 	.game-card .front {
 		background: #222;
 		border-radius: 5%;
 		overflow-y: hidden;
+		overflow-x: hidden;
 	}
 
-	label:hover .game-card {
-		-webkit-transform: rotateX(20deg);
-		transform: rotateX(20deg);
+	.container-card:hover .game-card {
+		-webkit-transform: rotateX(-20deg);
+		transform: rotateX(-20deg);
 		box-shadow: 0 20px 20px rgba(50, 50, 50, 0.2);
 	}
 
-	input {
+	.game-card.active {
+		transform: rotateX(180deg) !important;
+		-webkit-transform: rotateX(180deg) !important;
+	}
+
+	.game-card.active .front .banner-top{
 		display: none;
-	}
-
-	:checked + .game-card {
-		transform: rotateX(180deg);
-		-webkit-transform: rotateX(180deg);
-	}
-
-	label:hover :checked + .game-card {
-		transform: rotateX(160deg);
-		-webkit-transform: rotateX(160deg);
-		box-shadow: 0 20px 20px rgba(255, 255, 255, 0.2);
 	}
 
 	.front .banner-top {
@@ -191,5 +201,11 @@
 
 	.btn-day {
 		margin-right: 3%;
+	}
+
+	.btn-life-status {
+		position: absolute;
+		bottom: 15px;
+		left: 15px;
 	}
 </style>
